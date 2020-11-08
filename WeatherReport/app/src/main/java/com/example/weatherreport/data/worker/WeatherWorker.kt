@@ -1,14 +1,14 @@
 package com.example.weatherreport.data.worker
 
 import android.content.Context
-import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.example.weatherreport.WeatherApplication
+import com.example.weatherreport.common.AppUtil
 import com.example.weatherreport.data.io.ApiClient
 import com.example.weatherreport.data.io.ApiService
-import com.example.weatherreport.data.local.Weather
-import com.example.weatherreport.data.local.WeatherDatabase
 import com.example.weatherreport.data.model.WeatherResponse
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -33,27 +33,16 @@ class WeatherWork(ctx: Context, params: WorkerParameters) : Worker(ctx, params) 
                     response: Response<WeatherResponse>
                 ) {
                     GlobalScope.launch(Dispatchers.IO) {
-                        val model = Weather().apply {
-                            city = response.body()!!.name
-                            tempHigh = response.body()!!.main.temp_max.toString()
-                            tempLow = response.body()!!.main.temp_min.toString()
-                            temp = response.body()!!.main.temp.toString()
-                            sunrise = response.body()!!.sys.sunrise.toString()
-                            sunset = response.body()!!.sys.sunset.toString()
-                            humidity = response.body()!!.main.humidity.toString()
-                            country = response.body()!!.sys.country.toString()
-                            feesLike = response.body()!!.main.feels_like.toString()
-                            weadesc = response.body()!!.weather[0].description
-                        }
-                        WeatherDatabase.getDatabase(applicationContext)!!.weatherDao()!!
-                            .insertToLocal(model)
+                        AppUtil.writeJsonToLocal(
+                            WeatherApplication.applicationContext(),
+                            Gson().toJson(response.body())
+                        )
                     }
                 }
 
                 override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
                     t.printStackTrace()
                 }
-
             })
         return Result.success()
     }

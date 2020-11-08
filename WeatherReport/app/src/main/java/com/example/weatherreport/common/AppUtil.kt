@@ -23,7 +23,7 @@ class AppUtil {
         }
 
         /**
-         * Write the REST API response to application storage
+         * Write the REST API response to application storage(app specific storage area)
          */
         fun writeJsonToLocal(context: Context, data: String) {
             val file = File(context.filesDir, "weather.json")
